@@ -11,10 +11,35 @@ app = flask.Flask(__name__)
 @app.route('/api/v1/resources/books', methods=['GET'])
 def get_book_by_text():
     try:
-        books = book.book_get(str(request.args['name']),int(request.args['res']))
-        return jsonify(books)
+        name = str(request.args['name'])
     except:
-        books = book.book_get(str(request.args['name']))
+        name = ""
+    
+    try:
+        mainres = int(request.args['mainres'])
+    except:
+        mainres = ""
+    
+    try:
+        results = int(request.args['results'])
+    except:
+        results = ""
+
+    if name != "":
+        if mainres != "" and results == "":
+            books = book.book_get(name = str(request.args['name']),mainres = int(request.args['mainres']))
+            return jsonify(books)
+        elif mainres == "" and results != "":
+            books = book.book_get(name = str(request.args['name']),results = int(request.args['results']))
+            return jsonify(books)
+        elif mainres == "" and results == "":
+            books = book.book_get(name = str(request.args['name']))
+            return jsonify(books)
+        elif mainres != "" and results != "":
+            books = book.book_get(name = str(request.args['name']),mainres = int(request.args['mainres']),results = int(request.args['results']))
+            return jsonify(books)
+    elif name == "":
+        books = book.book_get("")
         return jsonify(books)
 
         

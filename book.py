@@ -22,7 +22,7 @@ def link_to_get(link):
     img_link = f"http://library.lol{img_link_src}"
     return [link_href, img_link]
 
-def book_get(name, res=25):
+def book_get(name, mainres=100, results=5):
     """This function returns the list of books for the given name
 
         You can give in name : 
@@ -31,7 +31,7 @@ def book_get(name, res=25):
                         3. author of book
                         4. publisher of book
         
-        res :
+        mainres :
                 1. 25
                 2. 50
                 3. 100
@@ -42,15 +42,22 @@ def book_get(name, res=25):
                         2.Size, 
                         3.Book Type, 
                         4.Book Link, 
-                        5.Book Image Link]"""
+                        5.Book Image Link
+                        6.Language]"""
     Books = []
     if is_emoji(name) == True:
         return "Error: emoji"
+    if name == "":
+        return "Error: enter name"
     name = name.replace(" ", "+")
     # getting request and response
-    url = f"http://libgen.is/search.php?req={name}&lg_topic=libgen&open=0&view=simple&res={res}&phrase=1&column=def&sort=extension&sortmode=DESC"
+    url = f"http://libgen.is/search.php?req={name}&lg_topic=libgen&open=0&view=simple&res={mainres}&phrase=1&column=def"
+    # print(url)
     response = requests.get(url)
     bs_html = bs(response.text , "html.parser")
+
+    if "Search string must contain minimum 3 characters.." in bs_html.body:
+        return "Error: Title Too Short"
     
     # scraping the site for response
     table = bs_html.find_all("table")
@@ -60,42 +67,56 @@ def book_get(name, res=25):
     table_rows.pop(0)
     # print(url, "\n\n")
     if a > 1 :
+        counter = 1
         for i in table_rows :
-            # make book list
-            book_lst = []
-            # getting all table datas
-            table_datas = i.find_all("td")
-            # book name
-            book_name = table_datas[2].get_text()
-            # author name
-            author = table_datas[1].get_text()
-            # getting link to book
-            link_row = table_datas[9]
-            a = link_row.find("a" , href = True)
-            link = a.get("href")
-            # getting image url & direct book download link
-            link_all = link_to_get(link)
-            # getting size of book
-            size_row = table_datas[7]
-            size = size_row.get_text()
-            # getting type of book
-            type_row = table_datas[8]
-            type_ofit = type_row.get_text()
-            book_lst.append(book_name)
-            book_lst.append(author)
-            book_lst.append(size)
-            book_lst.append(type_ofit)
-            book_lst.append(link_all[0])
-            book_lst.append(link_all[1])
-            Books.append(book_lst)
-        return Books
-
+            if counter <= results:
+                # make book list
+                book_lst = []
+                # getting all table datas
+                table_datas = i.find_all("td")
+                # book name
+                book_name = table_datas[2].get_text()
+                # author name
+                author = table_datas[1].get_text()
+                # getting link to book
+                link_row = table_datas[9]
+                a = link_row.find("a" , href = True)
+                link = a.get("href")
+                # getting image url & direct book download link
+                link_all = link_to_get(link)
+                # getting language
+                language_row = table_datas[6]
+                language = language_row.get_text()
+                # getting size of book
+                size_row = table_datas[7]
+                size = size_row.get_text()
+                # getting type of book
+                type_row = table_datas[8]
+                type_ofit = type_row.get_text()
+                # this will only take pdfs in English Language
+                if (type_ofit != "pdf" and type_ofit != "epub") or language != "English":
+                    continue
+                book_lst.append(book_name)
+                book_lst.append(author)
+                book_lst.append(size)
+                book_lst.append(type_ofit)
+                book_lst.append(link_all[0])
+                book_lst.append(link_all[1])
+                book_lst.append(language)
+                Books.append(book_lst)
+                # print(f"\n\n\n{book_lst}\n\n\n")
+                counter+=1
+        if len(Books) >=1 :
+            return Books
+        else :
+            return "Error: no results found"
     else:
         return "Error: no results found"
 
 
             
     
-# a = book_get("Rich Dad Poor Dad",3)
+# a = book_get("Harry Potter",25,5)
+# print(a)
 # for i in a :
 #     print(f"\n\nName : {i[0]}\nAuthor : {i[1]}\nSize : {i[2]}\nFormat : {i[3]}\nLink : {i[4]}\nImage : {i[5]}\n\n")

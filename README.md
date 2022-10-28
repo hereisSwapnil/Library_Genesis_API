@@ -19,20 +19,15 @@ For Installation follow the following steps
 
 ## Endpoints
 
-`/`
+Provide name, mainres, results are to be provided without {}.
 
-`/`
+For example (mainres & results are not mandatory): 
 
+`https://librarygenesisapi.hosting11.repl.co/api/v1/resources/books?name=python&mainres=25&results=5`
 
+Format :
 
-
-
-
-
-
-
-
-
+`https://librarygenesisapi.hosting11.repl.co/api/v1/resources/books?name={}&mainres={}&results={}`
 
 
 ## 🔗 Links
